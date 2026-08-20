@@ -61,6 +61,41 @@ def test_new_game_difficulty_controls_prefilled_cells(client):
     assert clue_counts['easy'] > clue_counts['medium'] > clue_counts['hard']
 
 
+def test_new_game_rejects_nonnumeric_clues(client):
+    response = client.get('/new?clues=abc')
+
+    assert response.status_code == 400
+    assert response.get_json() == {'error': 'Invalid clues'}
+
+
+def test_new_game_rejects_out_of_range_clues(client):
+    response = client.get('/new?clues=16')
+
+    assert response.status_code == 400
+    assert response.get_json() == {'error': 'Clues must be between 17 and 81'}
+
+
+def test_new_game_rejects_unsupported_difficulty(client):
+    response = client.get('/new?difficulty=insane')
+
+    assert response.status_code == 400
+    assert response.get_json() == {'error': 'Unsupported difficulty'}
+
+
+def test_valid_requests_still_work(client):
+    new_game = client.get('/new?difficulty=easy&clues=45')
+    puzzle = copy.deepcopy(app.CURRENT['puzzle'])
+    valid_board = copy.deepcopy(puzzle)
+    valid_board[0][0] = app.CURRENT['solution'][0][0]
+
+    check_response = client.post('/check', json={'board': valid_board})
+    hint_response = client.post('/hint', json={'board': puzzle})
+
+    assert new_game.status_code == 200
+    assert check_response.status_code == 200
+    assert hint_response.status_code == 200
+
+
 def test_prefilled_cells_are_disabled_in_rendered_board():
     javascript = open('static/main.js', encoding='utf-8').read()
 
@@ -78,11 +113,47 @@ def test_board_has_live_conflict_validation_without_solution_access():
     assert 'solution' not in javascript.split('function updateInvalidCells()', 1)[1].split('async function checkSolution()', 1)[0]
 
 
+@pytest.mark.parametrize('route', ['/check', '/hint'])
+def test_post_routes_require_valid_json(client, route):
+    response = client.post(route)
+
+    assert response.status_code == 400
+    assert response.get_json() == {'error': 'Invalid JSON payload'}
+
+
 def test_check_solution_requires_game_in_progress(client):
     response = client.post('/check', json={'board': []})
 
     assert response.status_code == 400
     assert response.get_json() == {'error': 'No game in progress'}
+
+
+def test_check_solution_rejects_malformed_board_dimensions(client):
+    client.get('/new?clues=81')
+    response = client.post('/check', json={'board': [[1, 2, 3, 4, 5, 6, 7, 8, 9]]})
+
+    assert response.status_code == 400
+    assert response.get_json() == {'error': 'Board must be a 9x9 list'}
+
+
+def test_hint_rejects_malformed_board_dimensions(client):
+    client.get('/new?clues=81')
+    response = client.post('/hint', json={'board': [[1, 2, 3, 4, 5, 6, 7, 8, 9]]})
+
+    assert response.status_code == 400
+    assert response.get_json() == {'error': 'Board must be a 9x9 list'}
+
+
+@pytest.mark.parametrize('route', ['/check', '/hint'])
+def test_post_routes_reject_values_outside_0_to_9(client, route):
+    client.get('/new?clues=81')
+    board = [[0 for _ in range(9)] for _ in range(9)]
+    board[0][0] = 10
+
+    response = client.post(route, json={'board': board})
+
+    assert response.status_code == 400
+    assert response.get_json() == {'error': 'Board values must be integers between 0 and 9'}
 
 
 def test_check_solution_reports_correct_and_incorrect_cells(client):
