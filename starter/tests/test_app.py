@@ -32,6 +32,8 @@ def test_index_renders_sudoku_page(client):
     assert b'id="timer" aria-live="polite">00:00' in response.data
     assert b'id="player-name"' in response.data
     assert b'id="scoreboard-list"' in response.data
+    assert b'id="theme-toggle"' in response.data
+    assert b'for="theme-toggle">Dark mode' in response.data
 
 
 def test_new_game_returns_puzzle_and_stores_game(client):
@@ -214,6 +216,22 @@ def test_scoreboard_stores_required_fields_and_formats_time():
     assert 'hintsUsed: hintCount' in javascript
     assert 'formatElapsedTime(score.completionTime)' in javascript
     assert 'renderScores();' in javascript
+
+
+def test_theme_toggle_persists_and_applies_css_theme_class():
+    javascript = open('static/main.js', encoding='utf-8').read()
+    styles = open('static/styles.css', encoding='utf-8').read()
+
+    assert "const THEME_STORAGE_KEY = 'sudokuTheme'" in javascript
+    assert "localStorage.getItem(THEME_STORAGE_KEY)" in javascript
+    assert "localStorage.setItem(THEME_STORAGE_KEY, theme)" in javascript
+    assert "classList.toggle('dark-mode'" in javascript
+    assert "addEventListener('change', toggleTheme)" in javascript
+    assert ':root {' in styles
+    assert ':root.dark-mode {' in styles
+    assert 'background: var(--page-background)' in styles
+    assert 'color: var(--text)' in styles
+    assert 'msg.style' not in javascript
 
 
 def test_check_feedback_uses_css_classes():

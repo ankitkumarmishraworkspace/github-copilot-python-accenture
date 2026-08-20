@@ -6,6 +6,23 @@ let timerId = null;
 let timerStartedAt = null;
 let scoreSaved = false;
 const SCORE_STORAGE_KEY = 'sudokuTopScores';
+const THEME_STORAGE_KEY = 'sudokuTheme';
+
+function applyTheme(theme) {
+  document.documentElement.classList.toggle('dark-mode', theme === 'dark');
+  document.getElementById('theme-toggle').checked = theme === 'dark';
+}
+
+function loadTheme() {
+  const theme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
+  applyTheme(theme);
+}
+
+function toggleTheme(event) {
+  const theme = event.target.checked ? 'dark' : 'light';
+  localStorage.setItem(THEME_STORAGE_KEY, theme);
+  applyTheme(theme);
+}
 
 function formatElapsedTime(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
@@ -246,6 +263,8 @@ window.addEventListener('load', () => {
   document.getElementById('new-game').addEventListener('click', newGame);
   document.getElementById('check-solution').addEventListener('click', checkSolution);
   document.getElementById('hint').addEventListener('click', useHint);
+  document.getElementById('theme-toggle').addEventListener('change', toggleTheme);
+  loadTheme();
   renderScores();
   // initialize
   newGame();
