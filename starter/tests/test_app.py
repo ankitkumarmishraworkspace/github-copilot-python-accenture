@@ -28,6 +28,10 @@ def test_index_renders_sudoku_page(client):
     assert b'value="hard"' in response.data
     assert b'id="hint"' in response.data
     assert b'id="hint-counter">Hints: 0' in response.data
+    assert b'id="timer"' in response.data
+    assert b'id="timer" aria-live="polite">00:00' in response.data
+    assert b'id="player-name"' in response.data
+    assert b'id="scoreboard-list"' in response.data
 
 
 def test_new_game_returns_puzzle_and_stores_game(client):
@@ -170,6 +174,46 @@ def test_hint_is_locked_and_counted_by_client():
     assert "hintCount += 1" in javascript
     assert "document.getElementById('hint-counter')" in javascript
     assert '.sudoku-cell.hinted' in styles
+
+
+def test_timer_is_client_side_and_stops_after_successful_check():
+    javascript = open('static/main.js', encoding='utf-8').read()
+    styles = open('static/styles.css', encoding='utf-8').read()
+
+    assert 'function formatElapsedTime(totalSeconds)' in javascript
+    assert 'padStart(2, \'0\')' in javascript
+    assert 'function startTimer()' in javascript
+    assert 'function stopTimer()' in javascript
+    assert 'timerId = setInterval(updateTimer, 1000)' in javascript
+    assert 'startTimer();' in javascript.split('async function newGame()', 1)[1].split('async function useHint()', 1)[0]
+    assert 'stopTimer();' in javascript.split('if (isBoardComplete(board) && incorrect.size === 0)', 1)[1]
+    assert '#timer' in styles
+    assert 'fetch(\'/timer\')' not in javascript
+
+
+def test_completion_requires_full_correct_board_and_saves_top_ten_score():
+    javascript = open('static/main.js', encoding='utf-8').read()
+
+    assert 'function isBoardComplete(board)' in javascript
+    assert 'isBoardComplete(board) && incorrect.size === 0' in javascript
+    assert '!isBoardComplete(board)' in javascript
+    assert 'function recordScore()' in javascript
+    assert 'if (scoreSaved) return' in javascript
+    assert "localStorage.getItem(SCORE_STORAGE_KEY)" in javascript
+    assert 'localStorage.setItem(SCORE_STORAGE_KEY' in javascript
+    assert 'scores.slice(0, 10)' in javascript
+    assert 'scoreSaved = false' in javascript
+
+
+def test_scoreboard_stores_required_fields_and_formats_time():
+    javascript = open('static/main.js', encoding='utf-8').read()
+
+    assert 'playerName,' in javascript
+    assert 'completionTime: getElapsedSeconds()' in javascript
+    assert 'difficulty:' in javascript
+    assert 'hintsUsed: hintCount' in javascript
+    assert 'formatElapsedTime(score.completionTime)' in javascript
+    assert 'renderScores();' in javascript
 
 
 def test_check_feedback_uses_css_classes():

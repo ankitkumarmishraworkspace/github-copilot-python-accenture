@@ -9,6 +9,8 @@
   <h1>Sudoku Game</h1>
   <div id="sudoku-board"></div>
   <div class="controls">
+    <label for="player-name">Player</label>
+    <input id="player-name" type="text" maxlength="30" placeholder="Your name">
     <label for="difficulty">Difficulty</label>
     <select id="difficulty">
       <option value="easy">Easy</option>
@@ -19,8 +21,13 @@
     <button id="check-solution">Check Solution</button>
     <button id="hint">Hint</button>
     <span id="hint-counter">Hints: 0</span>
+    <span id="timer" aria-live="polite">00:00</span>
     <span id="message"></span>
   </div>
+  <section id="scoreboard" aria-labelledby="scoreboard-title">
+    <h2 id="scoreboard-title">Top 10</h2>
+    <ol id="scoreboard-list"></ol>
+  </section>
   <script src="/static/main.js"></script>
 </body>
 </html>

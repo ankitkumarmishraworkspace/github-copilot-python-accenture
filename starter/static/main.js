@@ -2,6 +2,82 @@
 const SIZE = 9;
 let puzzle = [];
 let hintCount = 0;
+let timerId = null;
+let timerStartedAt = null;
+let scoreSaved = false;
+const SCORE_STORAGE_KEY = 'sudokuTopScores';
+
+function formatElapsedTime(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+  const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+  return `${minutes}:${seconds}`;
+}
+
+function updateTimer() {
+  const elapsedSeconds = Math.floor((Date.now() - timerStartedAt) / 1000);
+  document.getElementById('timer').innerText = formatElapsedTime(elapsedSeconds);
+}
+
+function startTimer() {
+  stopTimer();
+  timerStartedAt = Date.now();
+  updateTimer();
+  timerId = setInterval(updateTimer, 1000);
+}
+
+function stopTimer() {
+  if (timerId !== null) {
+    clearInterval(timerId);
+    timerId = null;
+  }
+}
+
+function getElapsedSeconds() {
+  if (timerStartedAt === null) return 0;
+  return Math.floor((Date.now() - timerStartedAt) / 1000);
+}
+
+function isBoardComplete(board) {
+  return board.every(row => row.every(value => value !== 0));
+}
+
+function loadScores() {
+  try {
+    return JSON.parse(localStorage.getItem(SCORE_STORAGE_KEY)) || [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveScores(scores) {
+  localStorage.setItem(SCORE_STORAGE_KEY, JSON.stringify(scores));
+}
+
+function renderScores() {
+  const scoreList = document.getElementById('scoreboard-list');
+  scoreList.innerHTML = '';
+  loadScores().forEach((score) => {
+    const item = document.createElement('li');
+    item.innerText = `${score.playerName} - ${formatElapsedTime(score.completionTime)} (${score.difficulty}, ${score.hintsUsed} hints)`;
+    scoreList.appendChild(item);
+  });
+}
+
+function recordScore() {
+  if (scoreSaved) return;
+  const playerName = document.getElementById('player-name').value.trim() || 'Anonymous';
+  const scores = loadScores();
+  scores.push({
+    playerName,
+    completionTime: getElapsedSeconds(),
+    difficulty: document.getElementById('difficulty').value,
+    hintsUsed: hintCount
+  });
+  scores.sort((first, second) => first.completionTime - second.completionTime);
+  saveScores(scores.slice(0, 10));
+  scoreSaved = true;
+  renderScores();
+}
 
 function getBoardValues() {
   const inputs = document.getElementById('sudoku-board').getElementsByTagName('input');
@@ -101,6 +177,8 @@ async function newGame() {
   const res = await fetch(`/new?difficulty=${difficulty}`);
   const data = await res.json();
   renderPuzzle(data.puzzle);
+  startTimer();
+  scoreSaved = false;
   hintCount = 0;
   document.getElementById('hint-counter').innerText = 'Hints: 0';
   document.getElementById('message').innerText = '';
@@ -149,9 +227,14 @@ async function checkSolution() {
     if (inp.disabled) continue;
     inp.classList.toggle('incorrect', incorrect.has(idx));
   }
-  if (incorrect.size === 0) {
+  if (isBoardComplete(board) && incorrect.size === 0) {
+    stopTimer();
+    recordScore();
     msg.className = 'message success';
     msg.innerText = 'Congratulations! You solved it!';
+  } else if (!isBoardComplete(board)) {
+    msg.className = 'message error';
+    msg.innerText = 'Keep going - the puzzle is not complete yet.';
   } else {
     msg.className = 'message error';
     msg.innerText = 'Some cells are incorrect.';
@@ -163,6 +246,7 @@ window.addEventListener('load', () => {
   document.getElementById('new-game').addEventListener('click', newGame);
   document.getElementById('check-solution').addEventListener('click', checkSolution);
   document.getElementById('hint').addEventListener('click', useHint);
+  renderScores();
   // initialize
   newGame();
 });

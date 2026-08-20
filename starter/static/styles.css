@@ -71,6 +71,13 @@ h1 {
     margin: 20px auto;
 }
 
+#player-name,
+#difficulty {
+    margin: 0 8px;
+    padding: 7px;
+    font-size: 16px;
+}
+
 button {
     padding: 8px 18px;
     margin: 0 8px;
@@ -92,10 +99,33 @@ button:hover {
     font-size: 16px;
 }
 
+#timer {
+    margin-left: 20px;
+    font-variant-numeric: tabular-nums;
+}
+
 #message.success {
     color: #388e3c;
 }
 
 #message.error {
     color: #d32f2f;
+}
+
+#scoreboard {
+    margin: 30px auto;
+    max-width: 420px;
+    text-align: left;
+}
+
+#scoreboard h2 {
+    text-align: center;
+}
+
+#scoreboard-list {
+    padding-left: 32px;
+}
+
+#scoreboard-list li {
+    margin: 6px 0;
 }
