@@ -2,6 +2,8 @@
     --page-background: #f4f4f4;
     --surface: #fff;
     --cell-background: #fafafa;
+    --block-a-background: #fafafa;
+    --block-b-background: #eef4f7;
     --text: #333;
     --muted-text: #555;
     --border: #333;
@@ -22,6 +24,8 @@
     --page-background: #18212b;
     --surface: #24313d;
     --cell-background: #2d3b48;
+    --block-a-background: #2d3b48;
+    --block-b-background: #354754;
     --text: #f3f6f8;
     --muted-text: #c8d2da;
     --border: #d7e0e7;
@@ -73,6 +77,22 @@ h1 {
     outline: none;
     background: var(--cell-background);
     transition: background 0.2s;
+}
+
+/* Alternate the nine 3x3 blocks in an A/B checkerboard pattern. */
+.sudoku-row:nth-child(-n + 3) .sudoku-cell:nth-child(-n + 3),
+.sudoku-row:nth-child(-n + 3) .sudoku-cell:nth-child(n + 7),
+.sudoku-row:nth-child(n + 7) .sudoku-cell:nth-child(-n + 3),
+.sudoku-row:nth-child(n + 7) .sudoku-cell:nth-child(n + 7),
+.sudoku-row:nth-child(n + 4):nth-child(-n + 6) .sudoku-cell:nth-child(n + 4):nth-child(-n + 6) {
+    background: var(--block-a-background);
+}
+
+.sudoku-row:nth-child(-n + 3) .sudoku-cell:nth-child(n + 4):nth-child(-n + 6),
+.sudoku-row:nth-child(n + 4):nth-child(-n + 6) .sudoku-cell:nth-child(-n + 3),
+.sudoku-row:nth-child(n + 4):nth-child(-n + 6) .sudoku-cell:nth-child(n + 7),
+.sudoku-row:nth-child(n + 7) .sudoku-cell:nth-child(n + 4):nth-child(-n + 6) {
+    background: var(--block-b-background);
 }
 
 .sudoku-cell:focus {

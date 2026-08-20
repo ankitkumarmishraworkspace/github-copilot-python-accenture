@@ -243,3 +243,18 @@ def test_check_feedback_uses_css_classes():
     assert '#message.success' in styles
     assert '#message.error' in styles
     assert 'msg.style' not in javascript
+
+
+def test_sudoku_blocks_use_alternating_theme_aware_backgrounds():
+    styles = open('static/styles.css', encoding='utf-8').read()
+
+    assert '--block-a-background:' in styles
+    assert '--block-b-background:' in styles
+    assert ':root.dark-mode {' in styles
+    assert 'background: var(--block-a-background)' in styles
+    assert 'background: var(--block-b-background)' in styles
+    assert styles.count('.sudoku-row:nth-child') >= 8
+    assert '.sudoku-cell.invalid' in styles
+    assert '.sudoku-cell.incorrect' in styles
+    assert '.sudoku-cell.prefilled' in styles
+    assert '.sudoku-cell.hinted' in styles
