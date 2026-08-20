@@ -1,6 +1,19 @@
 import sudoku_logic
 
 
+SOLVED_BOARD = [
+    [5, 3, 4, 6, 7, 8, 9, 1, 2],
+    [6, 7, 2, 1, 9, 5, 3, 4, 8],
+    [1, 9, 8, 3, 4, 2, 5, 6, 7],
+    [8, 5, 9, 7, 6, 1, 4, 2, 3],
+    [4, 2, 6, 8, 5, 3, 7, 9, 1],
+    [7, 1, 3, 9, 2, 4, 8, 5, 6],
+    [9, 6, 1, 5, 3, 7, 2, 8, 4],
+    [2, 8, 7, 4, 1, 9, 6, 3, 5],
+    [3, 4, 5, 2, 8, 6, 1, 7, 9],
+]
+
+
 def test_create_empty_board_has_expected_shape_and_values():
     board = sudoku_logic.create_empty_board()
 
@@ -17,6 +30,28 @@ def test_is_safe_rejects_row_column_and_box_conflicts():
     assert not sudoku_logic.is_safe(board, 1, 0, 1)
     assert not sudoku_logic.is_safe(board, 1, 1, 1)
     assert sudoku_logic.is_safe(board, 1, 1, 2)
+
+
+def test_solve_board_solves_a_valid_sudoku():
+    puzzle = sudoku_logic.deep_copy(SOLVED_BOARD)
+    puzzle[0][0] = sudoku_logic.EMPTY
+
+    assert sudoku_logic.solve_board(puzzle) == SOLVED_BOARD
+
+
+def test_has_unique_solution_detects_unique_puzzle():
+    puzzle = sudoku_logic.deep_copy(SOLVED_BOARD)
+    puzzle[0][0] = sudoku_logic.EMPTY
+
+    assert sudoku_logic.count_solutions(puzzle) == 1
+    assert sudoku_logic.has_unique_solution(puzzle)
+
+
+def test_count_solutions_rejects_puzzle_with_multiple_solutions():
+    puzzle = sudoku_logic.create_empty_board()
+
+    assert sudoku_logic.count_solutions(puzzle) == 2
+    assert not sudoku_logic.has_unique_solution(puzzle)
 
 
 def test_generate_puzzle_returns_valid_solution_and_requested_clues():
@@ -48,3 +83,4 @@ def test_generate_puzzle_returns_valid_solution_and_requested_clues():
         for box_row in range(0, sudoku_logic.SIZE, 3)
         for box_col in range(0, sudoku_logic.SIZE, 3)
     )
+    assert sudoku_logic.count_solutions(puzzle) == 1
