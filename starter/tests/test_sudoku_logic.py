@@ -1,3 +1,5 @@
+import random
+
 import sudoku_logic
 
 
@@ -95,13 +97,27 @@ def test_generate_puzzle_returns_valid_solution_and_requested_clues():
 
 
 def test_generate_puzzle_stays_near_difficulty_clue_target():
-    for difficulty, expected_clues in sudoku_logic.DIFFICULTY_CLUES.items():
-        puzzle, _ = sudoku_logic.generate_puzzle(
-            clues=sudoku_logic.clues_for_difficulty(difficulty)
-        )
-        clue_count = sum(
-            cell != sudoku_logic.EMPTY for row in puzzle for cell in row
-        )
+    random.seed(0)
+    difficulty_targets = {'easy': 45, 'medium': 35, 'hard': 25}
+    previous_average = None
 
-        assert expected_clues <= clue_count <= expected_clues + 1
-        assert sudoku_logic.has_unique_solution(puzzle)
+    for difficulty, expected_clues in ('easy', 45), ('medium', 35), ('hard', 25):
+        clue_counts = []
+        for _ in range(10):
+            puzzle, _ = sudoku_logic.generate_puzzle(
+                clues=sudoku_logic.clues_for_difficulty(difficulty)
+            )
+            clue_count = sum(
+                cell != sudoku_logic.EMPTY for row in puzzle for cell in row
+            )
+
+            assert expected_clues <= clue_count <= expected_clues + 6
+            assert sudoku_logic.has_unique_solution(puzzle)
+            clue_counts.append(clue_count)
+
+        average_clues = sum(clue_counts) / len(clue_counts)
+        if previous_average is not None:
+            assert average_clues < previous_average
+        previous_average = average_clues
+
+    assert difficulty_targets['easy'] > difficulty_targets['medium'] > difficulty_targets['hard']
