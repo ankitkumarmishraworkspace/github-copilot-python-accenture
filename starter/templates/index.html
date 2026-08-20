@@ -6,9 +6,16 @@
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <h1>Sudoku Game</h1>
-  <div id="sudoku-board"></div>
-  <div class="controls">
+  <header>
+    <h1>Sudoku Game</h1>
+  </header>
+  <main>
+    <section aria-labelledby="board-title">
+      <h2 id="board-title" class="visually-hidden">Sudoku board</h2>
+      <div id="sudoku-board" role="grid" aria-label="Sudoku puzzle"></div>
+      <p id="board-feedback" class="visually-hidden">Cells with conflicts or incorrect entries are marked and announced as invalid.</p>
+    </section>
+    <section class="controls" aria-label="Game controls">
     <label for="player-name">Player</label>
     <input id="player-name" type="text" maxlength="30" placeholder="Your name">
     <label for="theme-toggle">Dark mode</label>
@@ -24,12 +31,13 @@
     <button id="hint">Hint</button>
     <span id="hint-counter">Hints: 0</span>
     <span id="timer" aria-live="polite">00:00</span>
-    <span id="message"></span>
-  </div>
-  <section id="scoreboard" aria-labelledby="scoreboard-title">
-    <h2 id="scoreboard-title">Top 10</h2>
-    <ol id="scoreboard-list"></ol>
-  </section>
+      <span id="message" role="status" aria-live="polite"></span>
+    </section>
+    <section id="scoreboard" aria-labelledby="scoreboard-title">
+      <h2 id="scoreboard-title">Top 10</h2>
+      <ol id="scoreboard-list"></ol>
+    </section>
+  </main>
   <script src="/static/main.js"></script>
 </body>
 </html>

@@ -34,6 +34,9 @@ def test_index_renders_sudoku_page(client):
     assert b'id="scoreboard-list"' in response.data
     assert b'id="theme-toggle"' in response.data
     assert b'for="theme-toggle">Dark mode' in response.data
+    assert b'<main>' in response.data
+    assert b'role="grid"' in response.data
+    assert b'role="status" aria-live="polite"' in response.data
 
 
 def test_new_game_returns_puzzle_and_stores_game(client):
@@ -258,3 +261,18 @@ def test_sudoku_blocks_use_alternating_theme_aware_backgrounds():
     assert '.sudoku-cell.incorrect' in styles
     assert '.sudoku-cell.prefilled' in styles
     assert '.sudoku-cell.hinted' in styles
+
+def test_responsive_and_accessible_board_styles_are_present():
+    javascript = open('static/main.js', encoding='utf-8').read()
+    styles = open('static/styles.css', encoding='utf-8').read()
+
+    assert 'width: min(100%, 450px)' in styles
+    assert 'aspect-ratio: 1' in styles
+    assert 'grid-template-columns: repeat(9, minmax(0, 1fr))' in styles
+    assert 'font-size: clamp(' in styles
+    assert '@media (max-width: 520px)' in styles
+    assert ':focus-visible' in styles
+    assert "setAttribute('aria-label'" in javascript
+    assert "setAttribute('aria-invalid'" in javascript
+    assert "role', 'gridcell'" in javascript
+    assert '.visually-hidden' in styles

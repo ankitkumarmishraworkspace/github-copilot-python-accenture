@@ -138,7 +138,9 @@ function updateInvalidCells() {
     for (let col = 0; col < SIZE; col++) {
       const input = inputs[row * SIZE + col];
       if (input.disabled) continue;
-      input.classList.toggle('invalid', hasConflict(board, row, col));
+      const invalid = hasConflict(board, row, col);
+      input.classList.toggle('invalid', invalid);
+      input.setAttribute('aria-invalid', invalid ? 'true' : 'false');
     }
   }
 }
@@ -154,6 +156,10 @@ function createBoardElement() {
       input.type = 'text';
       input.maxLength = 1;
       input.className = 'sudoku-cell';
+      input.setAttribute('role', 'gridcell');
+      input.setAttribute('aria-label', `Row ${i + 1}, column ${j + 1}`);
+      input.setAttribute('aria-describedby', 'board-feedback');
+      input.setAttribute('aria-invalid', 'false');
       input.dataset.row = i;
       input.dataset.col = j;
       input.addEventListener('input', (e) => {
@@ -242,7 +248,9 @@ async function checkSolution() {
   for (let idx = 0; idx < inputs.length; idx++) {
     const inp = inputs[idx];
     if (inp.disabled) continue;
-    inp.classList.toggle('incorrect', incorrect.has(idx));
+    const isIncorrect = incorrect.has(idx);
+    inp.classList.toggle('incorrect', isIncorrect);
+    inp.setAttribute('aria-invalid', isIncorrect ? 'true' : 'false');
   }
   if (isBoardComplete(board) && incorrect.size === 0) {
     stopTimer();
