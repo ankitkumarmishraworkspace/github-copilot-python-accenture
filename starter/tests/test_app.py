@@ -139,15 +139,14 @@ def test_hint_does_not_overwrite_player_entry_or_prefilled_cell(client):
         for col in range(9)
         if puzzle[row][col] == 0
     )
-    puzzle[empty_cell[0]][empty_cell[1]] = 1
+    puzzle[empty_cell[0]][empty_cell[1]] = (solution[empty_cell[0]][empty_cell[1]] % 9) + 1
 
     response = client.post('/hint', json={'board': puzzle})
 
     assert response.get_json() == {
         'hint': {'row': None, 'col': None, 'value': None}
     }
-    assert puzzle[empty_cell[0]][empty_cell[1]] == 1
-    assert solution[empty_cell[0]][empty_cell[1]] != 1
+    assert puzzle[empty_cell[0]][empty_cell[1]] != solution[empty_cell[0]][empty_cell[1]]
 
 
 def test_hint_returns_empty_result_when_no_cells_remain(client):
