@@ -2,6 +2,53 @@
 const SIZE = 9;
 let puzzle = [];
 
+function getBoardValues() {
+  const inputs = document.getElementById('sudoku-board').getElementsByTagName('input');
+  const board = [];
+  for (let row = 0; row < SIZE; row++) {
+    board[row] = [];
+    for (let col = 0; col < SIZE; col++) {
+      const value = inputs[row * SIZE + col].value;
+      board[row][col] = value ? parseInt(value, 10) : 0;
+    }
+  }
+  return board;
+}
+
+function hasConflict(board, row, col) {
+  const value = board[row][col];
+  if (!value) return false;
+
+  for (let index = 0; index < SIZE; index++) {
+    if (index !== col && board[row][index] === value) return true;
+    if (index !== row && board[index][col] === value) return true;
+  }
+
+  const boxRow = row - row % 3;
+  const boxCol = col - col % 3;
+  for (let boxRowIndex = boxRow; boxRowIndex < boxRow + 3; boxRowIndex++) {
+    for (let boxColIndex = boxCol; boxColIndex < boxCol + 3; boxColIndex++) {
+      if ((boxRowIndex !== row || boxColIndex !== col) &&
+          board[boxRowIndex][boxColIndex] === value) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function updateInvalidCells() {
+  const board = getBoardValues();
+  const inputs = document.getElementById('sudoku-board').getElementsByTagName('input');
+  for (let row = 0; row < SIZE; row++) {
+    for (let col = 0; col < SIZE; col++) {
+      const input = inputs[row * SIZE + col];
+      if (input.disabled) continue;
+      input.classList.toggle('invalid', hasConflict(board, row, col));
+    }
+  }
+}
+
 function createBoardElement() {
   const boardDiv = document.getElementById('sudoku-board');
   boardDiv.innerHTML = '';
@@ -18,6 +65,7 @@ function createBoardElement() {
       input.addEventListener('input', (e) => {
         const val = e.target.value.replace(/[^1-9]/g, '');
         e.target.value = val;
+        updateInvalidCells();
       });
       rowDiv.appendChild(input);
     }
@@ -58,15 +106,7 @@ async function newGame() {
 async function checkSolution() {
   const boardDiv = document.getElementById('sudoku-board');
   const inputs = boardDiv.getElementsByTagName('input');
-  const board = [];
-  for (let i = 0; i < SIZE; i++) {
-    board[i] = [];
-    for (let j = 0; j < SIZE; j++) {
-      const idx = i * SIZE + j;
-      const val = inputs[idx].value;
-      board[i][j] = val ? parseInt(val, 10) : 0;
-    }
-  }
+  const board = getBoardValues();
   const res = await fetch('/check', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
