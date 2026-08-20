@@ -24,5 +24,14 @@ def check_solution():
         return jsonify({'error': 'No game in progress'}), 400
     return jsonify({'incorrect': incorrect})
 
+
+@app.route('/hint', methods=['POST'])
+def hint():
+    data = request.json
+    hint_data = game_service.get_hint(data.get('board'))
+    if hint_data is None:
+        return jsonify({'error': 'No game in progress'}), 400
+    return jsonify({'hint': hint_data})
+
 if __name__ == '__main__':
     app.run(debug=True)

@@ -26,6 +26,8 @@ def test_index_renders_sudoku_page(client):
     assert b'value="easy"' in response.data
     assert b'value="medium"' in response.data
     assert b'value="hard"' in response.data
+    assert b'id="hint"' in response.data
+    assert b'id="hint-counter">Hints: 0' in response.data
 
 
 def test_new_game_returns_puzzle_and_stores_game(client):
@@ -111,6 +113,64 @@ def test_check_solution_ignores_prefilled_cell_values(client):
 
     assert response.status_code == 200
     assert response.get_json() == {'incorrect': []}
+
+
+def test_hint_returns_one_correct_empty_cell(client):
+    client.get('/new?clues=80')
+    puzzle = copy.deepcopy(app.CURRENT['puzzle'])
+    solution = app.CURRENT['solution']
+
+    response = client.post('/hint', json={'board': puzzle})
+
+    assert response.status_code == 200
+    hint = response.get_json()['hint']
+    assert puzzle[hint['row']][hint['col']] == 0
+    assert hint['value'] == solution[hint['row']][hint['col']]
+    assert set(hint) == {'row', 'col', 'value'}
+
+
+def test_hint_does_not_overwrite_player_entry_or_prefilled_cell(client):
+    client.get('/new?clues=80')
+    puzzle = copy.deepcopy(app.CURRENT['puzzle'])
+    solution = app.CURRENT['solution']
+    empty_cell = next(
+        (row, col)
+        for row in range(9)
+        for col in range(9)
+        if puzzle[row][col] == 0
+    )
+    puzzle[empty_cell[0]][empty_cell[1]] = 1
+
+    response = client.post('/hint', json={'board': puzzle})
+
+    assert response.get_json() == {
+        'hint': {'row': None, 'col': None, 'value': None}
+    }
+    assert puzzle[empty_cell[0]][empty_cell[1]] == 1
+    assert solution[empty_cell[0]][empty_cell[1]] != 1
+
+
+def test_hint_returns_empty_result_when_no_cells_remain(client):
+    client.get('/new?clues=81')
+    board = copy.deepcopy(app.CURRENT['puzzle'])
+
+    response = client.post('/hint', json={'board': board})
+
+    assert response.status_code == 200
+    assert response.get_json() == {
+        'hint': {'row': None, 'col': None, 'value': None}
+    }
+
+
+def test_hint_is_locked_and_counted_by_client():
+    javascript = open('static/main.js', encoding='utf-8').read()
+    styles = open('static/styles.css', encoding='utf-8').read()
+
+    assert "input.disabled = true" in javascript
+    assert "input.classList.add('hinted')" in javascript
+    assert "hintCount += 1" in javascript
+    assert "document.getElementById('hint-counter')" in javascript
+    assert '.sudoku-cell.hinted' in styles
 
 
 def test_check_feedback_uses_css_classes():

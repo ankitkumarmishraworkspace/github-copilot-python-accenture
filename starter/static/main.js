@@ -1,6 +1,7 @@
 // Client-side rendering and interaction for the Flask-backed Sudoku
 const SIZE = 9;
 let puzzle = [];
+let hintCount = 0;
 
 function getBoardValues() {
   const inputs = document.getElementById('sudoku-board').getElementsByTagName('input');
@@ -100,7 +101,30 @@ async function newGame() {
   const res = await fetch(`/new?difficulty=${difficulty}`);
   const data = await res.json();
   renderPuzzle(data.puzzle);
+  hintCount = 0;
+  document.getElementById('hint-counter').innerText = 'Hints: 0';
   document.getElementById('message').innerText = '';
+}
+
+async function useHint() {
+  const response = await fetch('/hint', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({board: getBoardValues()})
+  });
+  const data = await response.json();
+  if (data.error || data.hint.row === null) return;
+
+  const hint = data.hint;
+  const inputs = document.getElementById('sudoku-board').getElementsByTagName('input');
+  const input = inputs[hint.row * SIZE + hint.col];
+  input.value = hint.value;
+  input.disabled = true;
+  input.classList.remove('invalid', 'incorrect');
+  input.classList.add('hinted');
+  hintCount += 1;
+  document.getElementById('hint-counter').innerText = `Hints: ${hintCount}`;
+  updateInvalidCells();
 }
 
 async function checkSolution() {
@@ -138,6 +162,7 @@ async function checkSolution() {
 window.addEventListener('load', () => {
   document.getElementById('new-game').addEventListener('click', newGame);
   document.getElementById('check-solution').addEventListener('click', checkSolution);
+  document.getElementById('hint').addEventListener('click', useHint);
   // initialize
   newGame();
 });
