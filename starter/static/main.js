@@ -80,9 +80,12 @@ function renderScores() {
   });
 }
 
-function recordScore() {
+function getPlayerName() {
+  return document.getElementById('player-name').value.trim() || 'Anonymous';
+}
+
+function recordScore(completionTime = getElapsedSeconds(), playerName = getPlayerName()) {
   if (scoreSaved) return;
-  const playerName = document.getElementById('player-name').value.trim() || 'Anonymous';
   const scores = loadScores();
   scores.push({
     playerName,
@@ -253,10 +256,13 @@ async function checkSolution() {
     inp.setAttribute('aria-invalid', isIncorrect ? 'true' : 'false');
   }
   if (isBoardComplete(board) && incorrect.size === 0) {
+    const completionTime = getElapsedSeconds();
+    const playerName = getPlayerName();
     stopTimer();
-    recordScore();
+    recordScore(completionTime, playerName);
     msg.className = 'message success';
-    msg.innerText = 'Congratulations! You solved it!';
+    const hintLabel = hintCount === 1 ? 'hint' : 'hints';
+    msg.innerText = `Congratulations, ${playerName}! You solved it in ${formatElapsedTime(completionTime)} with ${hintCount} ${hintLabel}.`;
   } else if (!isBoardComplete(board)) {
     msg.className = 'message error';
     msg.innerText = 'Keep going - the puzzle is not complete yet.';

@@ -202,12 +202,17 @@ def test_completion_requires_full_correct_board_and_saves_top_ten_score():
     assert 'function isBoardComplete(board)' in javascript
     assert 'isBoardComplete(board) && incorrect.size === 0' in javascript
     assert '!isBoardComplete(board)' in javascript
-    assert 'function recordScore()' in javascript
+    assert 'function recordScore(completionTime = getElapsedSeconds(), playerName = getPlayerName())' in javascript
     assert 'if (scoreSaved) return' in javascript
     assert "localStorage.getItem(SCORE_STORAGE_KEY)" in javascript
     assert 'localStorage.setItem(SCORE_STORAGE_KEY' in javascript
     assert 'scores.slice(0, 10)' in javascript
     assert 'scoreSaved = false' in javascript
+    assert 'const completionTime = getElapsedSeconds();' in javascript
+    assert 'recordScore(completionTime, playerName);' in javascript
+    assert 'formatElapsedTime(completionTime)' in javascript
+    assert 'hintLabel' in javascript
+    assert 'Congratulations, ${playerName}!' in javascript
 
 
 def test_scoreboard_stores_required_fields_and_formats_time():
