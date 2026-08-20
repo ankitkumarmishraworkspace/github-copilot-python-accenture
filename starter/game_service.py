@@ -17,13 +17,15 @@ def start_new_game(clues=35, difficulty=None):
 
 
 def incorrect_cells(board):
+    puzzle = CURRENT.get('puzzle')
     solution = CURRENT.get('solution')
-    if solution is None:
+    if puzzle is None or solution is None:
         return None
 
     incorrect = []
     for row in range(sudoku_logic.SIZE):
         for col in range(sudoku_logic.SIZE):
-            if board[row][col] != solution[row][col]:
+            is_player_cell = puzzle[row][col] == sudoku_logic.EMPTY
+            if is_player_cell and board[row][col] != sudoku_logic.EMPTY and board[row][col] != solution[row][col]:
                 incorrect.append([row, col])
     return incorrect

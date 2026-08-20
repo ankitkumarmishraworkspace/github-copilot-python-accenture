@@ -75,14 +75,50 @@ def test_check_solution_requires_game_in_progress(client):
 
 
 def test_check_solution_reports_correct_and_incorrect_cells(client):
-    client.get('/new?clues=81')
+    client.get('/new?clues=80')
+    puzzle = copy.deepcopy(app.CURRENT['puzzle'])
     solution = copy.deepcopy(app.CURRENT['solution'])
+    empty_cell = next(
+        (row, col)
+        for row in range(9)
+        for col in range(9)
+        if puzzle[row][col] == 0
+    )
 
-    correct_response = client.post('/check', json={'board': solution})
-    solution[0][0] = (solution[0][0] % 9) + 1
-    incorrect_response = client.post('/check', json={'board': solution})
+    correct_board = copy.deepcopy(puzzle)
+    correct_board[empty_cell[0]][empty_cell[1]] = solution[empty_cell[0]][empty_cell[1]]
+    correct_response = client.post('/check', json={'board': correct_board})
+
+    incorrect_board = copy.deepcopy(puzzle)
+    incorrect_board[empty_cell[0]][empty_cell[1]] = (solution[empty_cell[0]][empty_cell[1]] % 9) + 1
+    incorrect_response = client.post('/check', json={'board': incorrect_board})
+    empty_response = client.post('/check', json={'board': puzzle})
 
     assert correct_response.status_code == 200
     assert correct_response.get_json() == {'incorrect': []}
     assert incorrect_response.status_code == 200
-    assert incorrect_response.get_json() == {'incorrect': [[0, 0]]}
+    assert incorrect_response.get_json() == {'incorrect': [list(empty_cell)]}
+    assert empty_response.status_code == 200
+    assert empty_response.get_json() == {'incorrect': []}
+
+
+def test_check_solution_ignores_prefilled_cell_values(client):
+    client.get('/new?clues=81')
+    board = copy.deepcopy(app.CURRENT['puzzle'])
+    board[0][0] = (app.CURRENT['solution'][0][0] % 9) + 1
+
+    response = client.post('/check', json={'board': board})
+
+    assert response.status_code == 200
+    assert response.get_json() == {'incorrect': []}
+
+
+def test_check_feedback_uses_css_classes():
+    javascript = open('static/main.js', encoding='utf-8').read()
+    styles = open('static/styles.css', encoding='utf-8').read()
+
+    assert "msg.className = 'message success'" in javascript
+    assert "msg.className = 'message error'" in javascript
+    assert '#message.success' in styles
+    assert '#message.error' in styles
+    assert 'msg.style' not in javascript

@@ -115,7 +115,7 @@ async function checkSolution() {
   const data = await res.json();
   const msg = document.getElementById('message');
   if (data.error) {
-    msg.style.color = '#d32f2f';
+    msg.className = 'message error';
     msg.innerText = data.error;
     return;
   }
@@ -123,16 +123,13 @@ async function checkSolution() {
   for (let idx = 0; idx < inputs.length; idx++) {
     const inp = inputs[idx];
     if (inp.disabled) continue;
-    inp.className = 'sudoku-cell';
-    if (incorrect.has(idx)) {
-      inp.className = 'sudoku-cell incorrect';
-    }
+    inp.classList.toggle('incorrect', incorrect.has(idx));
   }
   if (incorrect.size === 0) {
-    msg.style.color = '#388e3c';
+    msg.className = 'message success';
     msg.innerText = 'Congratulations! You solved it!';
   } else {
-    msg.style.color = '#d32f2f';
+    msg.className = 'message error';
     msg.innerText = 'Some cells are incorrect.';
   }
 }
