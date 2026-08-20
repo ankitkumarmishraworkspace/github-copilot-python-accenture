@@ -23,6 +23,9 @@ def test_index_renders_sudoku_page(client):
     assert response.status_code == 200
     assert b'Sudoku Game' in response.data
     assert b'id="sudoku-board"' in response.data
+    assert b'value="easy"' in response.data
+    assert b'value="medium"' in response.data
+    assert b'value="hard"' in response.data
 
 
 def test_new_game_returns_puzzle_and_stores_game(client):
@@ -35,6 +38,22 @@ def test_new_game_returns_puzzle_and_stores_game(client):
     assert all(cell != 0 for row in puzzle for cell in row)
     assert app.CURRENT['puzzle'] == puzzle
     assert app.CURRENT['solution'] is not None
+
+
+def test_new_game_difficulty_controls_prefilled_cells(client):
+    clue_counts = {}
+    for difficulty in ('easy', 'medium', 'hard'):
+        response = client.get(f'/new?difficulty={difficulty}')
+        puzzle = response.get_json()['puzzle']
+        clue_counts[difficulty] = sum(cell != 0 for row in puzzle for cell in row)
+
+    assert clue_counts['easy'] > clue_counts['medium'] > clue_counts['hard']
+
+
+def test_prefilled_cells_are_disabled_in_rendered_board():
+    javascript = open('static/main.js', encoding='utf-8').read()
+
+    assert 'inp.disabled = true' in javascript
 
 
 def test_check_solution_requires_game_in_progress(client):

@@ -7,7 +7,9 @@ CURRENT = {
 }
 
 
-def start_new_game(clues=35):
+def start_new_game(clues=35, difficulty=None):
+    if difficulty is not None:
+        clues = sudoku_logic.clues_for_difficulty(difficulty)
     puzzle, solution = sudoku_logic.generate_puzzle(clues)
     CURRENT['puzzle'] = puzzle
     CURRENT['solution'] = solution

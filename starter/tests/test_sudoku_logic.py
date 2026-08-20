@@ -22,6 +22,14 @@ def test_create_empty_board_has_expected_shape_and_values():
     assert all(cell == sudoku_logic.EMPTY for row in board for cell in row)
 
 
+def test_difficulty_levels_have_descending_prefilled_cell_targets():
+    easy = sudoku_logic.clues_for_difficulty('Easy')
+    medium = sudoku_logic.clues_for_difficulty('medium')
+    hard = sudoku_logic.clues_for_difficulty('hard')
+
+    assert easy > medium > hard
+
+
 def test_is_safe_rejects_row_column_and_box_conflicts():
     board = sudoku_logic.create_empty_board()
     board[0][0] = 1
@@ -84,3 +92,13 @@ def test_generate_puzzle_returns_valid_solution_and_requested_clues():
         for box_col in range(0, sudoku_logic.SIZE, 3)
     )
     assert sudoku_logic.count_solutions(puzzle) == 1
+
+
+def test_generate_puzzle_uses_difficulty_clue_target():
+    for difficulty, expected_clues in sudoku_logic.DIFFICULTY_CLUES.items():
+        puzzle, _ = sudoku_logic.generate_puzzle(
+            clues=sudoku_logic.clues_for_difficulty(difficulty)
+        )
+
+        assert sum(cell != sudoku_logic.EMPTY for row in puzzle for cell in row) == expected_clues
+        assert sudoku_logic.has_unique_solution(puzzle)

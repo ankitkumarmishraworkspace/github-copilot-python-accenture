@@ -11,7 +11,8 @@ def index():
 @app.route('/new')
 def new_game():
     clues = int(request.args.get('clues', 35))
-    puzzle = game_service.start_new_game(clues)
+    difficulty = request.args.get('difficulty')
+    puzzle = game_service.start_new_game(clues, difficulty)
     return jsonify({'puzzle': puzzle})
 
 @app.route('/check', methods=['POST'])
