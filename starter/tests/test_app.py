@@ -215,6 +215,14 @@ def test_completion_requires_full_correct_board_and_saves_top_ten_score():
     assert 'Congratulations, ${playerName}!' in javascript
 
 
+def test_check_feedback_highlights_empty_and_wrong_editable_cells():
+    javascript = open('static/main.js', encoding='utf-8').read()
+
+    assert 'board[Math.floor(idx / SIZE)][idx % SIZE] === 0 || incorrect.has(idx)' in javascript
+    assert 'if (inp.disabled) continue' in javascript
+    assert "classList.toggle('incorrect', isIncorrect)" in javascript
+
+
 def test_scoreboard_stores_required_fields_and_formats_time():
     javascript = open('static/main.js', encoding='utf-8').read()
 

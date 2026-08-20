@@ -251,7 +251,7 @@ async function checkSolution() {
   for (let idx = 0; idx < inputs.length; idx++) {
     const inp = inputs[idx];
     if (inp.disabled) continue;
-    const isIncorrect = incorrect.has(idx);
+    const isIncorrect = board[Math.floor(idx / SIZE)][idx % SIZE] === 0 || incorrect.has(idx);
     inp.classList.toggle('incorrect', isIncorrect);
     inp.setAttribute('aria-invalid', isIncorrect ? 'true' : 'false');
   }
